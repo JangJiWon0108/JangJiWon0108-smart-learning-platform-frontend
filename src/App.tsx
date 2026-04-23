@@ -12,6 +12,32 @@ if (!API_BASE) {
   );
 }
 
+export const STATUS_MESSAGES = {
+  PREPARING_REQUEST: import.meta.env.VITE_STATUS_PREPARING_REQUEST || '요청을 준비하는 중이에요...',
+  EXECUTING_TOOL: import.meta.env.VITE_STATUS_EXECUTING_TOOL || '도구를 실행하는 중이에요...',
+  ANALYZING_IMAGE: import.meta.env.VITE_STATUS_ANALYZING_IMAGE || '이미지를 분석하는 중이에요...',
+  ANALYZING_INPUT: import.meta.env.VITE_STATUS_ANALYZING_INPUT || '입력을 분석하는 중이에요...',
+  CLEANING_QUERY: import.meta.env.VITE_STATUS_CLEANING_QUERY || '질문을 정리하는 중이에요...',
+  REFINING_QUERY: import.meta.env.VITE_STATUS_REFINING_QUERY || '질문을 더 잘 이해하도록 다듬는 중이에요...',
+  IDENTIFYING_INTENT: import.meta.env.VITE_STATUS_IDENTIFYING_INTENT || '질문 의도를 파악하는 중이에요...',
+  PREPARING_SOLVER: import.meta.env.VITE_STATUS_PREPARING_SOLVER || '풀이를 준비하는 중이에요...',
+  GENERATING_ANSWER: import.meta.env.VITE_STATUS_GENERATING_ANSWER || '답변을 생성하는 중이에요...',
+  EMBEDDING_QUERY: import.meta.env.VITE_STATUS_EMBEDDING_QUERY || '질문을 임베딩하는 중이에요...',
+  ANALYZING_WEAKNESS: import.meta.env.VITE_STATUS_ANALYZING_WEAKNESS || '약점을 분석하는 중이에요...',
+  SELECTING_RECOMMENDATION: import.meta.env.VITE_STATUS_SELECTING_RECOMMENDATION || '추천 문제를 고르는 중이에요...',
+  FILTERING_RECOMMENDATION: import.meta.env.VITE_STATUS_FILTERING_RECOMMENDATION || '추천 결과를 필터링하는 중이에요...',
+  SEARCHING_PROBLEMS: import.meta.env.VITE_STATUS_SEARCHING_PROBLEMS || '관련 문제를 검색하는 중이에요...',
+  SEARCHING_RESOURCES: import.meta.env.VITE_STATUS_SEARCHING_RESOURCES || '관련 기출/자료를 검색하는 중이에요...',
+  PREPARING_CURATION: import.meta.env.VITE_STATUS_PREPARING_CURATION || '추천 문제를 분석 중이에요...',
+  REFINING_PROBLEMS: import.meta.env.VITE_STATUS_REFINING_PROBLEMS || '문제를 다듬는 중이에요...',
+  ORGANIZING_RESULTS: import.meta.env.VITE_STATUS_ORGANIZING_RESULTS || '결과를 보기 좋게 정리하는 중이에요...',
+  DETECTING_LANGUAGE: import.meta.env.VITE_STATUS_DETECTING_LANGUAGE || '언어를 감지하는 중이에요...',
+  PREPARING_VISUALIZATION: import.meta.env.VITE_STATUS_PREPARING_VISUALIZATION || '시각화 순서를 준비하는 중이에요...',
+  ANALYZING_FLOW: import.meta.env.VITE_STATUS_ANALYZING_FLOW || '코드 실행 분석 중이에요...',
+  PROCESSING_REQUEST: import.meta.env.VITE_STATUS_PROCESSING_REQUEST || '요청을 처리하는 중이에요...',
+  FINISHING: import.meta.env.VITE_STATUS_FINISHING || '마무리하는 중이에요...',
+};
+
 export default function App() {
   const [activeNav, setActiveNav] = useState('chat');
   const [messages, setMessages] = useState<Message[]>([]);
@@ -30,37 +56,41 @@ export default function App() {
     const rawTool = String(data?.tool_name ?? '');
     const hint = `${rawMsg} ${rawNode} ${rawStep} ${rawTool}`.toLowerCase();
 
-    if (rawMsg === 'started') return '요청을 준비하는 중이에요...';
-    if (rawTool && rawTool !== 'undefined') return `도구를 실행하는 중이에요... (${rawTool})`;
+    if (rawMsg === 'started') return STATUS_MESSAGES.PREPARING_REQUEST;
+    if (rawTool && rawTool !== 'undefined') return `${STATUS_MESSAGES.EXECUTING_TOOL} (${rawTool})`;
 
     // Workflow nodes (backend/smart_learning_agent/agent.py edges 기준)
-    if (hint.includes('image_preprocess')) return hasImageRef.current ? '이미지를 분석하는 중이에요...' : '입력을 분석하는 중이에요...';
-    if (hint.includes('query_preprocess')) return '질문을 정리하는 중이에요...';
-    if (hint.includes('query_rewrite')) return '질문을 더 잘 이해하도록 다듬는 중이에요...';
-    if (hint.includes('intent') && hint.includes('class')) return '질문 의도를 파악하는 중이에요...';
-    if (hint.includes('intent_router') || hint.includes('router')) return '질문 의도를 파악하는 중이에요...';
+    if (hint.includes('image_preprocess')) return hasImageRef.current ? STATUS_MESSAGES.ANALYZING_IMAGE : STATUS_MESSAGES.ANALYZING_INPUT;
+    if (hint.includes('query_preprocess')) return STATUS_MESSAGES.CLEANING_QUERY;
+    if (hint.includes('query_rewrite')) return STATUS_MESSAGES.REFINING_QUERY;
+    if (hint.includes('intent') && hint.includes('class')) return STATUS_MESSAGES.IDENTIFYING_INTENT;
+    if (hint.includes('intent_router') || hint.includes('router')) return STATUS_MESSAGES.IDENTIFYING_INTENT;
 
-    if (hint.includes('solver_preprocess')) return '풀이를 준비하는 중이에요...';
-    if (hint.includes('solver_agent') || hint.includes('solver')) return '답변을 생성하는 중이에요...';
+    if (hint.includes('solver_preprocess')) return STATUS_MESSAGES.PREPARING_SOLVER;
+    if (hint.includes('solver_agent') || hint.includes('solver')) return STATUS_MESSAGES.GENERATING_ANSWER;
 
-    if (hint.includes('embed_query')) return '질문을 임베딩하는 중이에요...';
-    if (hint.includes('analyze_weakness')) return '약점을 분석하는 중이에요...';
-    if (hint.includes('rec_join') || hint.includes('rec_merge')) return '추천 문제를 고르는 중이에요...';
-    if (hint.includes('filter_agent') || hint.includes('filter')) return '추천 결과를 필터링하는 중이에요...';
-    if (hint.includes('faiss_search') || hint.includes('faiss')) return '관련 기출/자료를 검색하는 중이에요...';
-    if (hint.includes('curator_agent') || hint.includes('curator')) return '결과를 보기 좋게 정리하는 중이에요...';
+    if (hint.includes('embed_query')) return STATUS_MESSAGES.EMBEDDING_QUERY;
+    if (hint.includes('analyze_weakness')) return STATUS_MESSAGES.ANALYZING_WEAKNESS;
+    if (hint.includes('rec_join') || hint.includes('rec_merge')) return STATUS_MESSAGES.SELECTING_RECOMMENDATION;
+    if (hint.includes('filter_agent') || hint.includes('filter')) return STATUS_MESSAGES.FILTERING_RECOMMENDATION;
+    if (hint.includes('vertex_search')) return STATUS_MESSAGES.SEARCHING_PROBLEMS;
+    if (hint.includes('faiss_search') || hint.includes('faiss')) return STATUS_MESSAGES.SEARCHING_RESOURCES;
+    if (hint.includes('curator_agent')) return STATUS_MESSAGES.PREPARING_CURATION;
+    if (hint.includes('question_refine')) return STATUS_MESSAGES.REFINING_PROBLEMS;
+    // curator_intro_agent 등은 기본 메시지로 처리하여 스트리밍 중 말풍선 숨김 유지
 
-    if (hint.includes('language_detect')) return '언어를 감지하는 중이에요...';
-    if (hint.includes('tracer_agent') || hint.includes('tracer')) return '코드 실행 흐름을 분석하는 중이에요...';
-    if (hint.includes('fallback')) return '요청을 처리하는 중이에요...';
+    if (hint.includes('language_detect')) return STATUS_MESSAGES.DETECTING_LANGUAGE;
+    if (hint.includes('tracer_agent')) return STATUS_MESSAGES.ANALYZING_FLOW;
+    // tracer_intro_agent 등은 기본 메시지로 처리하여 스트리밍 중 말풍선 숨김 유지
+    if (hint.includes('fallback')) return STATUS_MESSAGES.PROCESSING_REQUEST;
 
-    if (hint.includes('final') || hint.includes('is_final_response')) return '마무리하는 중이에요...';
-    return '답변을 생성하는 중이에요...';
+    if (hint.includes('final') || hint.includes('is_final_response')) return STATUS_MESSAGES.FINISHING;
+    return STATUS_MESSAGES.GENERATING_ANSWER;
   };
 
   const handleSendMessage = async (text: string, image?: File, codeImage?: CodeBlock) => {
     const stamp = () =>
-      new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: true });
+      new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
 
     abortRef.current?.abort();
     const controller = new AbortController();
@@ -77,7 +107,7 @@ export default function App() {
     setMessages((prev) => [...prev, userMessage]);
     setIsLoading(true);
     setStreamingStarted(false);
-    setStatusText('');
+    setStatusText(STATUS_MESSAGES.PREPARING_REQUEST);
     hasImageRef.current = !!image;
 
     try {
@@ -150,7 +180,11 @@ export default function App() {
       };
 
       const updateStatus = (data: any) => {
-        setStatusText(humanizeStatus(data));
+        const humanized = humanizeStatus(data);
+        setStatusText(humanized);
+        // 새 노드가 시작될 때 streamingStarted를 리셋해 로딩 말풍선을 즉시 표시
+        // (예: tracer_intro_agent 텍스트 스트림 완료 후 tracer_agent 시작 사이의 공백 구간)
+        setStreamingStarted(false);
       };
 
       const handleEvent = (eventName: string, data: any) => {
@@ -158,11 +192,14 @@ export default function App() {
         const type = eventName !== 'message' ? eventName : (data?.type ?? eventName);
 
         if (type === 'status' || type === 'state') { updateStatus(data); return; }
+        if (type === 'stream_end') { setStreamingStarted(false); return; }
         if (type === 'chunk') { applyDelta(String(data?.text ?? '')); return; }
         if (type === 'delta') { applyDelta(String(data?.delta ?? '')); return; }
         if (type === 'final') { applyFinal(String(data?.response ?? '')); return; }
         if (type === 'done') { return; }
         if (type === 'curation') {
+          setStreamingStarted(true);
+          setStatusText('');
           const nextCards = Array.isArray(data?.problemCards) ? data.problemCards : [];
           const friendlyEmpty =
             '지금 조건에 맞는 추천 문제가 없어요.\n\n' +
@@ -193,6 +230,8 @@ export default function App() {
           return;
         }
         if (type === 'tracer') {
+          setStreamingStarted(true);
+          setStatusText('');
           setMessages((prev) => [
             ...prev,
             {
@@ -205,7 +244,21 @@ export default function App() {
           return;
         }
         if (type === 'error') {
-          applyDelta(`\n\n[오류] ${String(data?.message ?? '알 수 없는 오류')}`);
+          const errorText = String(data?.message ?? '알 수 없는 오류가 발생했습니다.');
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: `msg-${Date.now()}-error`,
+              role: 'ai' as const,
+              aiContent: {
+                badgeType: 'debug' as const,
+                title: '오류',
+                summary: errorText,
+                tags: [],
+              },
+              timestamp: stamp(),
+            },
+          ]);
           return;
         }
       };
@@ -234,8 +287,16 @@ export default function App() {
 
       while (true) {
         const { value, done } = await reader.read();
-        if (done) break;
+        if (done) {
+          // 마지막 블록이 구분자 없이 끝나는 경우를 대비해 잔여 버퍼도 처리
+          if (buffer.trim().length > 0) {
+            parseAndHandle(buffer);
+          }
+          break;
+        }
         buffer += decoder.decode(value, { stream: true });
+        // 브라우저/프록시 환경별 CRLF 차이를 흡수해 블록 경계를 안정적으로 파싱
+        buffer = buffer.replace(/\r\n/g, '\n');
 
         let idx: number;
         while ((idx = buffer.indexOf('\n\n')) !== -1) {

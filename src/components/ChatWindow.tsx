@@ -5,6 +5,7 @@ import CodeSnippetWindow from './CodeSnippetWindow';
 import InputArea from './InputArea';
 import { CodeBlock, Message } from '../types';
 import { type Theme } from '../data/themes';
+import { STATUS_MESSAGES } from '../App';
 
 const SAMPLE_QUESTIONS = [
   {
@@ -85,7 +86,7 @@ export default function ChatWindow({
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [messages, isLoading, streamingStarted, statusText]);
 
   return (
     <div className="flex flex-col h-screen flex-1 overflow-hidden" style={{ background: '#f8fafc' }}>
@@ -227,8 +228,8 @@ export default function ChatWindow({
         {messages.map((message) => (
           <ChatMessage key={message.id} message={message} />
         ))}
-        {/* 로딩 말풍선: 요약 스트리밍 이후 최종 결과(카드/트레이스) 대기 구간에도 유지 */}
-        {isLoading && (
+        {/* 로딩 말풍선: 스트리밍 시작 전 또는 스트리밍 중이라도 특별한 상태 메시지가 있는 경우에만 표시 */}
+        {isLoading && (!streamingStarted || (statusText && statusText !== STATUS_MESSAGES.GENERATING_ANSWER)) && (
           <div className="flex items-start gap-2 mb-6">
             <div
               className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-1"
