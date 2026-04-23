@@ -20,7 +20,6 @@ export interface ExamProblemCard {
 
   /** --- 확장 상세 정보 (백엔드 curation 이벤트에서 내려올 수 있음) --- */
   subject?: string;
-  difficulty?: 'easy' | 'medium' | 'hard';
   similarityScore?: number;
   question?: string;
   code?: string | null;
