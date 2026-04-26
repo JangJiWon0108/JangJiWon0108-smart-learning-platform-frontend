@@ -31,6 +31,7 @@ export const STATUS_MESSAGES = {
   PREPARING_CURATION: import.meta.env.VITE_STATUS_PREPARING_CURATION || '추천 문제를 분석 중이에요...',
   REFINING_PROBLEMS: import.meta.env.VITE_STATUS_REFINING_PROBLEMS || '문제를 다듬는 중이에요...',
   ORGANIZING_RESULTS: import.meta.env.VITE_STATUS_ORGANIZING_RESULTS || '결과를 보기 좋게 정리하는 중이에요...',
+  EXTRACTING_CODE_INPUT: import.meta.env.VITE_STATUS_EXTRACTING_CODE_INPUT || '분석할 코드를 추출하는 중이에요...',
   DETECTING_LANGUAGE: import.meta.env.VITE_STATUS_DETECTING_LANGUAGE || '언어를 감지하는 중이에요...',
   PREPARING_VISUALIZATION: import.meta.env.VITE_STATUS_PREPARING_VISUALIZATION || '시각화 순서를 준비하는 중이에요...',
   ANALYZING_FLOW: import.meta.env.VITE_STATUS_ANALYZING_FLOW || '코드 실행 분석 중이에요...',
@@ -76,9 +77,12 @@ export default function App() {
     if (hint.includes('vertex_search')) return STATUS_MESSAGES.SEARCHING_PROBLEMS;
     if (hint.includes('faiss_search') || hint.includes('faiss')) return STATUS_MESSAGES.SEARCHING_RESOURCES;
     if (hint.includes('curator_intro')) return STATUS_MESSAGES.PREPARING_CURATION;
+    if (hint.includes('build_curator_output') || hint.includes('curator_output')) return STATUS_MESSAGES.ORGANIZING_RESULTS;
     if (hint.includes('curator_agent')) return STATUS_MESSAGES.PREPARING_CURATION;
     if (hint.includes('question_refine')) return STATUS_MESSAGES.REFINING_PROBLEMS;
 
+    if (hint.includes('prepare_tracer_input')) return STATUS_MESSAGES.PREPARING_VISUALIZATION;
+    if (hint.includes('tracer_input')) return STATUS_MESSAGES.EXTRACTING_CODE_INPUT;
     if (hint.includes('language_detect')) return STATUS_MESSAGES.DETECTING_LANGUAGE;
     if (hint.includes('tracer_intro')) return STATUS_MESSAGES.ANALYZING_FLOW;
     if (hint.includes('tracer_agent')) return STATUS_MESSAGES.ANALYZING_FLOW;
