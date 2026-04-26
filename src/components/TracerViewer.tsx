@@ -21,6 +21,14 @@ export default function TracerViewer({ data }: Props) {
   const [revealedOutput, setRevealedOutput] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
+  if (!data?.steps?.length) {
+    return (
+      <div className="rounded-2xl p-6 text-sm text-slate-500 text-center" style={{ border: '1px solid #e2e8f0' }}>
+        실행 흐름 데이터를 불러오지 못했습니다.
+      </div>
+    );
+  }
+
   const step = data.steps[stepIdx];
   const total = data.steps.length;
   const langColor = LANG_COLOR[data.language] ?? '#6366f1';
@@ -184,6 +192,34 @@ export default function TracerViewer({ data }: Props) {
         {/* ── State panel ── */}
         <div className="flex flex-col overflow-auto" style={{ width: 240, flexShrink: 0 }}>
           <div className="flex-1 p-3 space-y-3">
+            {/* Call stack - shown first */}
+            {step.call_stack.length > 0 && (
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400 mb-1">
+                  콜스택
+                </p>
+                <div className="flex flex-col-reverse gap-0.5">
+                  {step.call_stack.map((fn, i) => {
+                    const isTop = i === step.call_stack.length - 1;
+                    return (
+                      <div
+                        key={i}
+                        className="text-[10px] font-mono px-2 py-0.5 rounded flex items-center gap-1"
+                        style={{
+                          background: isTop ? '#ede9fe' : '#f1f5f9',
+                          color: isTop ? '#6d28d9' : '#64748b',
+                          borderLeft: isTop ? '2px solid #7c3aed' : '2px solid transparent',
+                          marginLeft: i * 6,
+                        }}
+                      >
+                        {fn}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             {/* Current code line */}
             {currentLineText && (
               <div>
@@ -257,34 +293,6 @@ export default function TracerViewer({ data }: Props) {
                 </div>
               )}
             </div>
-
-            {/* Call stack */}
-            {step.call_stack.length > 0 && (
-              <div>
-                <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400 mb-1">
-                  콜스택
-                </p>
-                <div className="flex flex-col-reverse gap-0.5">
-                  {step.call_stack.map((fn, i) => {
-                    const isTop = i === step.call_stack.length - 1;
-                    return (
-                      <div
-                        key={i}
-                        className="text-[10px] font-mono px-2 py-0.5 rounded flex items-center gap-1"
-                        style={{
-                          background: isTop ? '#ede9fe' : '#f1f5f9',
-                          color: isTop ? '#6d28d9' : '#64748b',
-                          borderLeft: isTop ? '2px solid #7c3aed' : '2px solid transparent',
-                          marginLeft: i * 6,
-                        }}
-                      >
-                        {fn}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
 
             {/* Memory (C) */}
             {step.memory.length > 0 && (

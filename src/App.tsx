@@ -48,7 +48,7 @@ export default function App() {
   const [showSettings, setShowSettings] = useState(false);
   const hasImageRef = useRef(false);
   const abortRef = useRef<AbortController | null>(null);
-
+  const sessionIdRef = useRef<string>(crypto.randomUUID());
   const humanizeStatus = (data: any): string => {
     const rawMsg = typeof data?.message === 'string' ? data.message : '';
     const rawNode = String(data?.node_name ?? data?.node ?? '');
@@ -75,13 +75,13 @@ export default function App() {
     if (hint.includes('filter_agent') || hint.includes('filter')) return STATUS_MESSAGES.FILTERING_RECOMMENDATION;
     if (hint.includes('vertex_search')) return STATUS_MESSAGES.SEARCHING_PROBLEMS;
     if (hint.includes('faiss_search') || hint.includes('faiss')) return STATUS_MESSAGES.SEARCHING_RESOURCES;
+    if (hint.includes('curator_intro')) return STATUS_MESSAGES.PREPARING_CURATION;
     if (hint.includes('curator_agent')) return STATUS_MESSAGES.PREPARING_CURATION;
     if (hint.includes('question_refine')) return STATUS_MESSAGES.REFINING_PROBLEMS;
-    // curator_intro_agent 등은 기본 메시지로 처리하여 스트리밍 중 말풍선 숨김 유지
 
     if (hint.includes('language_detect')) return STATUS_MESSAGES.DETECTING_LANGUAGE;
+    if (hint.includes('tracer_intro')) return STATUS_MESSAGES.ANALYZING_FLOW;
     if (hint.includes('tracer_agent')) return STATUS_MESSAGES.ANALYZING_FLOW;
-    // tracer_intro_agent 등은 기본 메시지로 처리하여 스트리밍 중 말풍선 숨김 유지
     if (hint.includes('fallback')) return STATUS_MESSAGES.PROCESSING_REQUEST;
 
     if (hint.includes('final') || hint.includes('is_final_response')) return STATUS_MESSAGES.FINISHING;
@@ -95,7 +95,6 @@ export default function App() {
     abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
-
     const userMessage: Message = {
       id: `msg-${Date.now()}`,
       role: 'user',
@@ -112,7 +111,11 @@ export default function App() {
 
     try {
       const form = new FormData();
-      form.append('query', codeImage?.code ? `${text}\n\n${codeImage.code}` : text);
+      const queryText = codeImage?.code
+        ? `${text}\n\n\`\`\`${codeImage.language || ''}\n${codeImage.code.trim()}\n\`\`\``
+        : text;
+      form.append('query', queryText);
+      form.append('session_id', sessionIdRef.current);
       if (image) form.append('image', image);
 
       const aiMessageId = `msg-${Date.now()}-ai`;
@@ -198,49 +201,55 @@ export default function App() {
         if (type === 'final') { applyFinal(String(data?.response ?? '')); return; }
         if (type === 'done') { return; }
         if (type === 'curation') {
-          setStreamingStarted(true);
-          setStatusText('');
-          const nextCards = Array.isArray(data?.problemCards) ? data.problemCards : [];
-          const friendlyEmpty =
-            '지금 조건에 맞는 추천 문제가 없어요.\n\n' +
-            '- 검색 범위를 넓혀서 다시 요청해보세요 (예: “최근 3개”, “난이도 상관없이”).\n' +
-            '- 과목/유형을 조금 바꿔보세요 (예: C 포인터 → 구조체 포인터/이중 포인터).\n' +
-            '- 원하시면 제가 비슷한 유형으로 1~3개를 직접 구성해드릴게요.';
-          const messageText =
-            typeof data?.message === 'string' && data.message.trim().length > 0
-              ? data.message
-              : nextCards.length === 0
-                ? friendlyEmpty
-                : '';
-          setMessages((prev) => [
-            ...prev,
-            {
-              id: `msg-${Date.now()}-curation`,
-              role: 'ai' as const,
-              aiContent: {
-                badgeType: 'curate' as const,
-                title: String(data?.title ?? '맞춤 추천'),
-                summary: messageText,
-                tags: [],
-                problemCards: nextCards,
+          const render = () => {
+            setStreamingStarted(true);
+            setStatusText('');
+            const nextCards = Array.isArray(data?.problemCards) ? data.problemCards : [];
+            const friendlyEmpty =
+              '지금 조건에 맞는 추천 문제가 없어요.\n\n' +
+              '- 검색 범위를 넓혀서 다시 요청해보세요 (예: “최근 3개”, “난이도 상관없이”).\n' +
+              '- 과목/유형을 조금 바꿔보세요 (예: C 포인터 → 구조체 포인터/이중 포인터).\n' +
+              '- 원하시면 제가 비슷한 유형으로 1~3개를 직접 구성해드릴게요.';
+            const messageText =
+              typeof data?.message === 'string' && data.message.trim().length > 0
+                ? data.message
+                : nextCards.length === 0
+                  ? friendlyEmpty
+                  : '';
+            setMessages((prev) => [
+              ...prev,
+              {
+                id: `msg-${Date.now()}-curation`,
+                role: 'ai' as const,
+                aiContent: {
+                  badgeType: 'curate' as const,
+                  title: String(data?.title ?? '맞춤 추천'),
+                  summary: messageText,
+                  tags: [],
+                  problemCards: nextCards,
+                },
+                timestamp: stamp(),
               },
-              timestamp: stamp(),
-            },
-          ]);
+            ]);
+          };
+          render();
           return;
         }
         if (type === 'tracer') {
-          setStreamingStarted(true);
-          setStatusText('');
-          setMessages((prev) => [
-            ...prev,
-            {
-              id: `msg-${Date.now()}-tracer`,
-              role: 'ai',
-              tracerOutput: (data?.data ?? data) as TracerOutput,
-              timestamp: stamp(),
-            },
-          ]);
+          const render = () => {
+            setStreamingStarted(true);
+            setStatusText('');
+            setMessages((prev) => [
+              ...prev,
+              {
+                id: `msg-${Date.now()}-tracer`,
+                role: 'ai',
+                tracerOutput: data?.data as TracerOutput,
+                timestamp: stamp(),
+              },
+            ]);
+          };
+          render();
           return;
         }
         if (type === 'error') {
@@ -337,6 +346,7 @@ export default function App() {
   const handleNewChat = () => {
     abortRef.current?.abort();
     abortRef.current = null;
+    sessionIdRef.current = crypto.randomUUID();
     setMessages([]);
     setIsLoading(false);
     setStreamingStarted(false);

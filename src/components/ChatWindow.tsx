@@ -17,15 +17,15 @@ const SAMPLE_QUESTIONS = [
   },
   {
     icon: Sparkles,
-    text: 'C언어 이중 포인터 관련 최신 기출 문제 찾아줘',
-    sendText: 'C언어 이중 포인터 관련 최신 기출 문제 찾아줘',
+    text: 'C언어 이중 포인터 관련 문제 찾아줘',
+    sendText: 'C언어 이중 포인터 관련 문제 찾아줘',
     gradient: 'linear-gradient(135deg, #f5f3ff, #ede9fe)',
     iconBg: '#7c3aed',
   },
   {
     icon: GitBranch,
-    text: '아래 코드 실행 순서를 잘 모르겠어',
-    sendText: '아래 코드 실행 순서를 잘 모르겠어',
+    text: '아래 코드 실행 순서 알려줘',
+    sendText: '아래 코드 실행 순서 알려줘',
     codeImage: {
       language: 'java',
       filename: 'Main.java',
