@@ -17,9 +17,9 @@ const SAMPLE_QUESTIONS = [
   },
   {
     icon: Sparkles,
-    text: 'C언어 이중 포인터 관련 문제 찾아줘',
-    sendText: 'C언어 이중 포인터 관련 문제 찾아줘',
-    gradient: 'linear-gradient(135deg, #f5f3ff, #ede9fe)',
+    text: '2025년 C언어 포인터 문제 찾아줘',
+    sendText: '2025년 C언어 포인터 문제 찾아줘',
+    gradient: 'linear-gradient(to bottom, #f5f3ff, #ede9fe)',
     iconBg: '#7c3aed',
   },
   {

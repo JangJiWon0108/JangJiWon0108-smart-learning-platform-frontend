@@ -42,6 +42,13 @@ function ProblemCardsDeck({ cards }: { cards: ExamProblemCard[] }) {
       {orderedCards.map((c, index) => {
         const a = cardAccent[c.accent];
         const isAnswerRevealed = !!revealedAnswers[c.problemId];
+        const answerText =
+          typeof c.answer === 'string' && c.answer.trim().length > 0
+            ? c.answer.trim()
+            : typeof c.officialAnswer === 'string'
+              ? c.officialAnswer.trim()
+              : '';
+        const explanationText = typeof c.explanation === 'string' ? c.explanation.trim() : '';
         return (
           <article
             key={c.problemId}
@@ -72,7 +79,7 @@ function ProblemCardsDeck({ cards }: { cards: ExamProblemCard[] }) {
                 {stripQuestionCodePreview(c.stemPreview)}
               </p>
 
-              {(c.code || c.answer || c.explanation) && (
+              {(c.code || answerText || explanationText) && (
                 <div className="mt-3 space-y-2">
                     {typeof c.code === 'string' && c.code.trim().length > 0 && (
                       <CodeSnippetWindow
@@ -83,7 +90,7 @@ function ProblemCardsDeck({ cards }: { cards: ExamProblemCard[] }) {
                       />
                     )}
 
-                    {typeof c.answer === 'string' && c.answer.trim().length > 0 && (
+                    {(answerText || explanationText) && (
                       <div>
                         <button
                           type="button"
@@ -95,8 +102,8 @@ function ProblemCardsDeck({ cards }: { cards: ExamProblemCard[] }) {
                           }
                           className="text-[11px] font-semibold px-3 py-1.5 rounded-full transition"
                           style={{
-                            background: isAnswerRevealed ? '#0f172a' : a.pill,
-                            color: isAnswerRevealed ? '#e2e8f0' : a.pillText,
+                            background: isAnswerRevealed ? '#0f172a' : `${a.bar}20`,
+                            color: isAnswerRevealed ? '#e2e8f0' : a.bar,
                             border: `1px solid ${isAnswerRevealed ? 'rgba(226,232,240,0.16)' : 'rgba(148,163,184,0.18)'}`,
                           }}
                         >
@@ -105,24 +112,24 @@ function ProblemCardsDeck({ cards }: { cards: ExamProblemCard[] }) {
 
                         {isAnswerRevealed && (
                           <div
-                            className="mt-2 px-3 py-2 rounded-xl text-xs leading-relaxed"
+                            className="mt-2 px-3 py-2 rounded-xl text-xs leading-relaxed whitespace-pre-wrap"
                             style={{
-                              background: '#f8fafc',
-                              border: '1px solid #e2e8f0',
-                              color: '#334155',
+                              background: '#1e1e2e',
+                              border: '1px solid rgba(255,255,255,0.06)',
+                              color: '#e2e8f0',
                             }}
                           >
-                            <div className="font-semibold" style={{ color: '#0f172a' }}>
+                            <div className="font-semibold" style={{ color: '#a6e3a1' }}>
                               [정답]
                             </div>
-                            <div className="mt-1 whitespace-pre-line">{c.answer}</div>
+                            <div className="mt-1">{answerText || '정답 정보가 없습니다.'}</div>
 
-                            {typeof c.explanation === 'string' && c.explanation.trim().length > 0 && (
-                              <div className="mt-2 pt-2" style={{ borderTop: '1px solid #e2e8f0' }}>
-                                <div className="font-semibold" style={{ color: '#0f172a' }}>
+                            {explanationText && (
+                              <div className="mt-2 pt-2" style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+                                <div className="font-semibold" style={{ color: '#a6e3a1' }}>
                                   [해설]
                                 </div>
-                                <div className="mt-1 whitespace-pre-line">{c.explanation}</div>
+                                <div className="mt-1">{explanationText}</div>
                               </div>
                             )}
                           </div>
