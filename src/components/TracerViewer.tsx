@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { ChevronLeft, ChevronRight, Keyboard } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Keyboard, Sparkles } from 'lucide-react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { TracerOutput } from '../types';
@@ -14,6 +14,35 @@ const LANG_COLOR: Record<string, string> = {
 interface Props {
   data: TracerOutput;
 }
+
+const stripStepPrefix = (note: string) => note.replace(/^Step\s+\d+\.\s*/i, '').trim();
+
+const splitNote = (note: string) => {
+  const cleanNote = stripStepPrefix(note);
+  const sentences = cleanNote.split(/(?<=[.!?])\s+/).filter(Boolean);
+
+  return {
+    headline: sentences[0] ?? cleanNote,
+    details: sentences.slice(1),
+  };
+};
+
+const renderInlineCode = (text: string) =>
+  text.split(/(`[^`]+`)/g).map((part, index) => {
+    if (part.startsWith('`') && part.endsWith('`')) {
+      return (
+        <code
+          key={index}
+          className="mx-0.5 rounded-md px-1.5 py-0.5 text-[11px] font-semibold"
+          style={{ background: '#eef2ff', color: '#4338ca', border: '1px solid #c7d2fe' }}
+        >
+          {part.slice(1, -1)}
+        </code>
+      );
+    }
+
+    return part;
+  });
 
 export default function TracerViewer({ data }: Props) {
   const [stepIdx, setStepIdx] = useState(0);
@@ -35,6 +64,7 @@ export default function TracerViewer({ data }: Props) {
   const currentLineText = data.original_code.split('\n')[step.line - 1]?.trim() ?? '';
   const isFirst = stepIdx === 0;
   const isLast = stepIdx === total - 1;
+  const noteParts = splitNote(step.note);
 
   const goNext = useCallback(() => setStepIdx((s) => Math.min(total - 1, s + 1)), [total]);
   const goPrev = useCallback(() => setStepIdx((s) => Math.max(0, s - 1)), []);
@@ -354,11 +384,81 @@ export default function TracerViewer({ data }: Props) {
 
       {/* Note + Navigation */}
       <div style={{ borderTop: '1px solid #e2e8f0' }}>
-        <div className="px-5 py-3">
-          <p className="text-xs text-slate-600 leading-relaxed">
-            <span className="font-semibold text-slate-700">Step {step.step}. </span>
-            {step.note}
-          </p>
+        <div className="px-5 py-4">
+          <div
+            className="relative overflow-hidden rounded-2xl p-4"
+            style={{
+              background: `linear-gradient(135deg, ${langColor}12, #ffffff 58%)`,
+              border: `1px solid ${langColor}24`,
+              boxShadow: `0 10px 28px ${langColor}10`,
+            }}
+          >
+            <div
+              className="absolute inset-y-4 left-0 w-1 rounded-r-full"
+              style={{ background: langColor }}
+              aria-hidden
+            />
+
+            <div className="flex items-start gap-3">
+              <div
+                className="mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-2xl"
+                style={{ background: langColor + '18', color: langColor, border: `1px solid ${langColor}28` }}
+              >
+                <Sparkles size={16} />
+              </div>
+
+              <div className="min-w-0 flex-1">
+                <div className="mb-1.5 flex flex-wrap items-center gap-2">
+                  <span
+                    className="rounded-full px-2.5 py-1 text-[11px] font-bold"
+                    style={{ background: langColor, color: '#ffffff' }}
+                  >
+                    Step {step.step}
+                  </span>
+                  <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                    지금 일어나는 일
+                  </span>
+                </div>
+
+                <p className="text-[13px] font-semibold leading-relaxed text-slate-800">
+                  {renderInlineCode(noteParts.headline)}
+                </p>
+
+                {noteParts.details.length > 0 && (
+                  <div className="mt-2 space-y-1">
+                    {noteParts.details.map((detail, index) => (
+                      <p key={index} className="text-xs leading-relaxed text-slate-500">
+                        {renderInlineCode(detail)}
+                      </p>
+                    ))}
+                  </div>
+                )}
+
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  {currentLineText && (
+                    <span
+                      className="inline-flex min-w-0 max-w-full items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px]"
+                      style={{ background: '#0f172a', color: '#fef3c7' }}
+                      title={currentLineText}
+                    >
+                      <span className="font-semibold text-amber-200">실행 줄</span>
+                      <code className="truncate font-mono">{currentLineText}</code>
+                    </span>
+                  )}
+
+                  {step.changed_vars.length > 0 && (
+                    <span
+                      className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold"
+                      style={{ background: '#dcfce7', color: '#15803d', border: '1px solid #86efac' }}
+                    >
+                      바뀐 값
+                      <span className="font-mono">{step.changed_vars.join(', ')}</span>
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         {data.final_output && (

@@ -29,16 +29,16 @@ function stripQuestionCodePreview(raw: string): string {
   return raw.slice(0, idx).trim();
 }
 
+function formatProblemMatchLabel(label: string): string {
+  return label.trim().toLowerCase() === 'concept' ? '개념문제' : label;
+}
+
 function ProblemCardsDeck({ cards }: { cards: ExamProblemCard[] }) {
   const [revealedAnswers, setRevealedAnswers] = useState<Record<string, boolean>>({});
 
   const orderedCards = useMemo(() => cards, [cards]);
   return (
     <div className="mt-5 space-y-3">
-      <p className="text-xs text-slate-500 leading-relaxed">
-        총 <span className="font-semibold text-slate-700">{cards.length}개</span>를 세로로 모았어요. 위에서부터
-        천천히 살보면 좋아요.
-      </p>
       {orderedCards.map((c, index) => {
         const a = cardAccent[c.accent];
         const isAnswerRevealed = !!revealedAnswers[c.problemId];
@@ -49,6 +49,7 @@ function ProblemCardsDeck({ cards }: { cards: ExamProblemCard[] }) {
               ? c.officialAnswer.trim()
               : '';
         const explanationText = typeof c.explanation === 'string' ? c.explanation.trim() : '';
+        const matchLabel = formatProblemMatchLabel(c.matchLabel);
         return (
           <article
             key={c.problemId}
@@ -71,7 +72,7 @@ function ProblemCardsDeck({ cards }: { cards: ExamProblemCard[] }) {
                   className="text-[11px] font-medium px-2.5 py-0.5 rounded-full"
                   style={{ background: a.pill, color: a.pillText }}
                 >
-                  {c.matchLabel}
+                  {matchLabel}
                 </span>
               </div>
               <p className="text-[11px] text-slate-400 leading-snug mb-2.5 line-clamp-2">{c.examTitle}</p>
@@ -86,7 +87,7 @@ function ProblemCardsDeck({ cards }: { cards: ExamProblemCard[] }) {
                         code={c.code}
                         language={c.codeLanguage || 'text'}
                         title={`${c.year}년 ${c.round}회 · 문항 ${c.questionNumber}`}
-                        maxHeight={280}
+                        maxHeight={360}
                       />
                     )}
 
@@ -188,7 +189,7 @@ function CodeImageCard({ data }: { data: CodeBlock }) {
         code={data.code}
         language={data.language || 'text'}
         title={data.filename || 'snippet'}
-        maxHeight={220}
+        maxHeight={420}
       />
     </div>
   );
@@ -201,7 +202,7 @@ function AICodeBlock({ data }: { data: CodeBlock }) {
         code={data.code}
         language={data.language || 'text'}
         title={data.filename || 'code'}
-        maxHeight={260}
+        maxHeight={520}
       />
     </div>
   );

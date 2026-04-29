@@ -5,7 +5,6 @@ import CodeSnippetWindow from './CodeSnippetWindow';
 import InputArea from './InputArea';
 import { CodeBlock, Message } from '../types';
 import { type Theme } from '../data/themes';
-import { STATUS_MESSAGES } from '../App';
 
 const SAMPLE_QUESTIONS = [
   {
@@ -208,7 +207,7 @@ export default function ChatWindow({
                           code={codeImage.code}
                           language={codeImage.language || 'text'}
                           title={codeImage.filename || 'code'}
-                          maxHeight={190}
+                          maxHeight={320}
                           className="shadow-none w-full"
                         />
                       )}
@@ -228,8 +227,8 @@ export default function ChatWindow({
         {messages.map((message) => (
           <ChatMessage key={message.id} message={message} />
         ))}
-        {/* 로딩 말풍선: 스트리밍 시작 전 또는 스트리밍 중이라도 특별한 상태 메시지가 있는 경우에만 표시 */}
-        {isLoading && (!streamingStarted || (statusText && statusText !== STATUS_MESSAGES.GENERATING_ANSWER)) && (
+        {/* 로딩 말풍선 — 요약 스트림 종료 후 다음 상태 표시 */}
+        {isLoading && !streamingStarted && statusText?.trim() && (
           <div className="flex items-start gap-2 mb-6">
             <div
               className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-1"

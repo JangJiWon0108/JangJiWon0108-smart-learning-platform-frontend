@@ -13,7 +13,7 @@ export default function CodeSnippetWindow({
   code,
   language = 'text',
   title,
-  maxHeight = 320,
+  maxHeight = 520,
   className,
 }: Props) {
   const safeTitle = title?.trim();

@@ -189,9 +189,6 @@ export default function App() {
       const updateStatus = (data: any) => {
         const humanized = humanizeStatus(data);
         setStatusText(humanized);
-        // 새 노드가 시작될 때 streamingStarted를 리셋해 로딩 말풍선을 즉시 표시
-        // (예: tracer_intro_agent 텍스트 스트림 완료 후 tracer_agent 시작 사이의 공백 구간)
-        setStreamingStarted(false);
       };
 
       const handleEvent = (eventName: string, data: any) => {
